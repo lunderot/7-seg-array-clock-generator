@@ -69,20 +69,33 @@ window.onload = () => {
 
 const generate = (ctx, samples) => {
   const steps = 60;
-  let result = "";
+  let result = "byte pattern[] = {";
   for (let i = 0; i < steps; i++) {
     draw(ctx, i / steps);
-    result += sample(ctx, samples) ? "1" : "0";
+    const number = sampleDigit(ctx, samples)
+      .toString(16)
+      .padStart(2, "0")
+      .toUpperCase();
+    result += `0x${number}${i < steps - 1 ? "," : ""}`;
   }
+  result += "};";
   return result;
 };
 
-const sample = (ctx, samples) => {
-  const value = samples[0]
-    .map(s => imageToAverage(ctx.getImageData(s.x, s.y, 10, 10).data))
-    .reduce((prev, curr) => prev + curr);
-  return value > 128;
-};
+const sampleSegment = (ctx, segment) =>
+  segment
+    .map(samplePoint =>
+      imageToAverage(
+        ctx.getImageData(samplePoint.x, samplePoint.y, 10, 10).data
+      )
+    )
+    .reduce((prev, curr) => prev + curr) > 128;
+
+const sampleDigit = (ctx, samples) =>
+  samples.reduce(
+    (prev, curr, index) => prev | (sampleSegment(ctx, curr) << index),
+    0
+  );
 
 const imageToAverage = imageData =>
   imageData.reduce((prev, curr) => prev + curr, 0) /
