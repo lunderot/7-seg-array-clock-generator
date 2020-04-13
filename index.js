@@ -3,48 +3,48 @@ const samples = [
     //A
     { x: 52, y: 36 },
     { x: 67, y: 36 },
-    { x: 81, y: 36 }
+    { x: 81, y: 36 },
   ],
   [
     //B
     { x: 97, y: 40 },
     { x: 94, y: 60 },
-    { x: 91, y: 80 }
+    { x: 91, y: 80 },
   ],
   [
     //C
     { x: 87, y: 110 },
     { x: 84, y: 130 },
-    { x: 81, y: 150 }
+    { x: 81, y: 150 },
   ],
   [
     //D
     { x: 38, y: 151 },
     { x: 53, y: 151 },
-    { x: 67, y: 151 }
+    { x: 67, y: 151 },
   ],
   [
     //E
     { x: 26, y: 110 },
     { x: 23, y: 130 },
-    { x: 20, y: 150 }
+    { x: 20, y: 150 },
   ],
   [
     //F
     { x: 36, y: 40 },
     { x: 33, y: 60 },
-    { x: 30, y: 80 }
+    { x: 30, y: 80 },
   ],
   [
     //G
     { x: 42, y: 93 },
     { x: 59, y: 93 },
-    { x: 76, y: 93 }
+    { x: 76, y: 93 },
   ],
   [
     //DP
-    { x: 100, y: 151 }
-  ]
+    { x: 100, y: 151 },
+  ],
 ];
 
 window.onload = () => {
@@ -61,47 +61,59 @@ window.onload = () => {
   const generateButton = document.getElementById("generate");
   const outputText = document.getElementById("output");
   generateButton.onclick = () => {
-    outputText.value = generate(hiddenCtx, samples);
+    outputText.value = generate(hiddenCtx, samples, hiddenCanvas, 60);
   };
 
   window.requestAnimationFrame(drawWrapper(ctx, canvas));
 };
 
-const generate = (ctx, samples) => {
-  const steps = 60;
-  let result = "byte pattern[] = {";
-  for (let i = 0; i < steps; i++) {
-    draw(ctx, i / steps);
-    const number = sampleDigit(ctx, samples)
-      .toString(16)
-      .padStart(2, "0")
-      .toUpperCase();
-    result += `0x${number}${i < steps - 1 ? "," : ""}`;
+const generate = (ctx, samples, canvas, steps) => {
+  let array = [];
+  for (let s = 0; s < steps; s++) {
+    draw(ctx, s / steps);
+    const image = ctx.getImageData(0, 0, canvas.height, canvas.width).data;
+    for (let i = 0; i < 6 * 4; i++) {
+      for (let j = 0; j < 6; j++) {
+        const offset = { x: i * 126 - 10, y: j * 190 };
+        array.push(sampleDigit(image, samples, offset, canvas.width));
+      }
+    }
   }
-  result += "};";
-  return result;
+  return (
+    array.reduce((p, c, i) => {
+      const value = c.toString(16).padStart(2, "0").toUpperCase();
+      const addNewline = i % (6 * 4 * 6) == 0;
+      return (
+        p +
+        `0x${value}${i < array.length - 1 ? "," : ""}${addNewline ? "\n" : ""}`
+      );
+    }, "byte pattern[] = {") + "};"
+  );
 };
 
-const sampleSegment = (ctx, segment) =>
-  segment
-    .map(samplePoint =>
-      imageToAverage(
-        ctx.getImageData(samplePoint.x, samplePoint.y, 10, 10).data
-      )
-    )
-    .reduce((prev, curr) => prev + curr) > 128;
+const sampleImageData = (image, x, y, canvasWidth) =>
+  image[y * (canvasWidth * 4) + x * 4];
 
-const sampleDigit = (ctx, samples) =>
+const sampleSegment = (image, segment, offset, canvasWidth) => {
+  const a = segment.map((samplePoint) =>
+    sampleImageData(
+      image,
+      samplePoint.x + offset.x + 5,
+      samplePoint.y + offset.y + 5,
+      canvasWidth
+    )
+  );
+  return a.reduce((prev, curr) => prev + curr) > 128;
+};
+
+const sampleDigit = (image, samples, offset, canvasWidth) =>
   samples.reduce(
-    (prev, curr, index) => prev | (sampleSegment(ctx, curr) << index),
+    (prev, curr, index) =>
+      prev | (sampleSegment(image, curr, offset, canvasWidth) << index),
     0
   );
 
-const imageToAverage = imageData =>
-  imageData.reduce((prev, curr) => prev + curr, 0) /
-  ((imageData.length / 4) * 3);
-
-const drawWrapper = ctx => timestamp => {
+const drawWrapper = (ctx) => (timestamp) => {
   const t = (timestamp % 1000.0) / 1000.0;
   draw(ctx, t);
   drawSamples(ctx, samples);
@@ -111,7 +123,7 @@ const drawWrapper = ctx => timestamp => {
 const draw = (ctx, t) => {
   ctx.fillStyle = "white";
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.clearRect(0, 0, 10000, 10000);
+  ctx.fillRect(0, 0, 10000, 10000);
   stripeEffect(ctx, t);
 };
 
@@ -131,7 +143,7 @@ const drawSamples = (ctx, samples) => {
   for (let i = 0; i < 6 * 4; i++) {
     for (let j = 0; j < 6; j++) {
       ctx.setTransform(1, 0, 0, 1, i * 126 - 10, j * 190);
-      samples.map(digit =>
+      samples.map((digit) =>
         digit.map(({ x, y }) => {
           ctx.fillRect(x, y, 10, 10);
         })
