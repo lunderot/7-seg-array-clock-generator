@@ -127,7 +127,7 @@ const draw = (ctx, t) => {
   ctx.fillStyle = "white";
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillRect(0, 0, 10000, 10000);
-  stripeEffect(ctx, t);
+  spiralEffect(ctx, t);
 };
 
 const stripeEffect = (ctx, t) => {
@@ -139,6 +139,24 @@ const stripeEffect = (ctx, t) => {
   for (let i = 0; i < 100; i++) {
     ctx.translate(a * 2, 0);
     ctx.fillRect(0, -10000, a, 100000);
+  }
+};
+const spiralEffect = (ctx, t) => {
+  ctx.fillStyle = "black";
+  const cx = 400;
+  const cy = 4000;
+  const num = 12;
+  const offset = (Math.PI / num) * 2;
+
+  for (let i = 0; i < num; i++) {
+    ctx.translate(3000 / 2, 1140 / 2);
+    ctx.rotate(t * offset + offset * i);
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-cx, -cy);
+    ctx.lineTo(cx, -cy);
+    ctx.fill();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
   }
 };
 
