@@ -1,49 +1,49 @@
 const samples = [
   [
     //G
-    { x: 42, y: 93 },
-    { x: 59, y: 93 },
-    { x: 76, y: 93 },
+    { x: 32, y: 93 },
+    { x: 49, y: 93 },
+    { x: 66, y: 93 },
   ],
   [
     //F
-    { x: 36, y: 40 },
-    { x: 33, y: 60 },
-    { x: 30, y: 80 },
+    { x: 26, y: 40 },
+    { x: 23, y: 60 },
+    { x: 20, y: 80 },
   ],
   [
     //E
-    { x: 26, y: 110 },
-    { x: 23, y: 130 },
-    { x: 20, y: 150 },
+    { x: 16, y: 110 },
+    { x: 13, y: 130 },
+    { x: 10, y: 150 },
   ],
   [
     //D
-    { x: 38, y: 151 },
-    { x: 53, y: 151 },
-    { x: 67, y: 151 },
+    { x: 28, y: 151 },
+    { x: 43, y: 151 },
+    { x: 57, y: 151 },
   ],
   [
     //C
-    { x: 87, y: 110 },
-    { x: 84, y: 130 },
-    { x: 81, y: 150 },
+    { x: 77, y: 110 },
+    { x: 74, y: 130 },
+    { x: 71, y: 150 },
   ],
   [
     //B
-    { x: 97, y: 40 },
-    { x: 94, y: 60 },
-    { x: 91, y: 80 },
+    { x: 87, y: 40 },
+    { x: 84, y: 60 },
+    { x: 81, y: 80 },
   ],
   [
     //A
-    { x: 52, y: 36 },
-    { x: 67, y: 36 },
-    { x: 81, y: 36 },
+    { x: 42, y: 36 },
+    { x: 57, y: 36 },
+    { x: 71, y: 36 },
   ],
   [
     //DP
-    { x: 100, y: 151 },
+    { x: 90, y: 151 },
   ],
 ];
 
@@ -61,7 +61,7 @@ window.onload = () => {
   const generateButton = document.getElementById("generate");
   const outputText = document.getElementById("output");
   generateButton.onclick = () => {
-    outputText.value = generate(hiddenCtx, samples, hiddenCanvas, 1);
+    outputText.value = generate(hiddenCtx, samples, hiddenCanvas, 30);
   };
 
   window.requestAnimationFrame(drawWrapper(ctx, canvas));
@@ -87,7 +87,9 @@ const generate = (ctx, samples, canvas, steps) => {
         p +
         `0x${value}${i < array.length - 1 ? "," : ""}${addNewline ? "\n" : ""}`
       );
-    }, "uint8_t pattern[] = {") + "};"
+    }, "uint8_t pattern[] = {") +
+    "};\n#define NUM_FRAMES " +
+    steps.toString()
   );
 };
 
@@ -104,7 +106,7 @@ const sampleSegment = (image, segment, offset, canvasWidth) => {
       canvasWidth
     )
   );
-  return a.reduce((prev, curr) => prev + curr) > 128;
+  return a.reduce((prev, curr) => prev + curr) / a.length > 128;
 };
 
 const sampleDigit = (image, samples, offset, canvasWidth) =>
@@ -117,7 +119,7 @@ const sampleDigit = (image, samples, offset, canvasWidth) =>
 const drawWrapper = (ctx) => (timestamp) => {
   const t = (timestamp % 1000.0) / 1000.0;
   draw(ctx, t);
-  drawSamples(ctx, samples);
+  //drawSamples(ctx, samples);
   anim = window.requestAnimationFrame(drawWrapper(ctx));
 };
 
@@ -130,12 +132,13 @@ const draw = (ctx, t) => {
 
 const stripeEffect = (ctx, t) => {
   ctx.fillStyle = "black";
-  ctx.translate(0, t * (Math.sqrt(2) * 2 * 100));
+  const a = 400;
+  ctx.translate(0, t * (Math.sqrt(2) * 2 * a));
   ctx.rotate((45 * Math.PI) / 180);
   ctx.translate(-2000, 0);
   for (let i = 0; i < 100; i++) {
-    ctx.translate(200, 0);
-    ctx.fillRect(0, -10000, 100, 100000);
+    ctx.translate(a * 2, 0);
+    ctx.fillRect(0, -10000, a, 100000);
   }
 };
 
