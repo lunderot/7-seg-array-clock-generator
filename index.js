@@ -124,14 +124,17 @@ const drawWrapper = (ctx) => (timestamp) => {
 };
 
 const draw = (ctx, t) => {
-  ctx.fillStyle = "white";
+  ctx.fillStyle = "black";
   ctx.setTransform(1, 0, 0, 1, 0, 0);
-  ctx.fillRect(0, 0, 10000, 10000);
-  spiralEffect(ctx, t);
+  //  ctx.fillRect(0, 0, 10000, 10000);
+  ctx.rect(0, 0, 10000, 10000);
+  ctx.fillStyle = "black";
+  ctx.fill();
+  ballsEffect(ctx, t);
 };
 
 const stripeEffect = (ctx, t) => {
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "white";
   const a = 400;
   ctx.translate(0, t * (Math.sqrt(2) * 2 * a));
   ctx.rotate((45 * Math.PI) / 180);
@@ -141,8 +144,9 @@ const stripeEffect = (ctx, t) => {
     ctx.fillRect(0, -10000, a, 100000);
   }
 };
+
 const spiralEffect = (ctx, t) => {
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "white";
   const cx = 400;
   const cy = 4000;
   const num = 12;
@@ -160,8 +164,26 @@ const spiralEffect = (ctx, t) => {
   }
 };
 
+const ballsEffect = (ctx, t) => {
+  const drawBall = (ctx, t, offset, size) => {
+    t = (t + offset) % 1.0;
+    let r = (Math.sin(Math.PI * 2 * t) + 1) / 2;
+    r = (size - 100) * r + 100;
+    ctx.beginPath();
+    ctx.arc(0, 0, r, 0, 2 * Math.PI);
+    ctx.fill();
+  };
+  ctx.fillStyle = "white";
+  const num = 150;
+  ctx.translate(0, 1140 / 2);
+  for (let i = 0; i < num; i++) {
+    ctx.translate(20, 0);
+    drawBall(ctx, t, i / num, 1140 / 2);
+  }
+};
+
 const debugEffect = (ctx, t) => {
-  ctx.fillStyle = "black";
+  ctx.fillStyle = "white";
   ctx.translate(-1260 + t * 126 * 2 * 0, 0);
   for (let i = 0; i < 100; i++) {
     ctx.translate(126 * 2, 0);
